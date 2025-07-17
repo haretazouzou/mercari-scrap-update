@@ -46,7 +46,7 @@ const mockCompetitors: Competitor[] = [
     rating: 98,
     price: 2800,
     salesCount: 1250,
-    lastSeen: "2時間前",
+    lastSeen: "5時間前",
     trend: "up",
     image: "https://static.mercdn.net/c!/w=240,f=webp/thumb/photos/m43982021195_1.jpg?1749545086",
     mercariUrl: "https://mercari.com/jp/items/m12345678901",
