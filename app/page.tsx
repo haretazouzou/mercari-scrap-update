@@ -16,7 +16,7 @@ import { GoogleIcon } from "@/components/icons/google-icon"
 import { Separator } from "@/components/ui/separator"
 import { authenticateUser, authenticateWithGoogle, generateToken, saveSession } from "@/lib/auth"
 import type { AuthSession } from "@/lib/auth"
-import logo from "../public/セラーナビ様ロゴ.png"
+import logo from "../public/logo.png"
 import Image from "next/image"
 
 export default function LoginPage() {

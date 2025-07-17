@@ -32,7 +32,7 @@ import Link from "next/link"
 import { GoogleIcon } from "@/components/icons/google-icon"
 import { registerUser, authenticateWithGoogle, generateToken, saveSession } from "@/lib/auth"
 import type { AuthSession, PlanType } from "@/lib/auth"
-import logo from "../../public/セラーナビ様ロゴ.png"
+import logo from "../../public/logo.png"
 import Image from "next/image"
 
 interface FormData {
