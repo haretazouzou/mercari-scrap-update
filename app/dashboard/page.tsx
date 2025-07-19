@@ -21,10 +21,23 @@ import {
   AlertCircle,
   Zap,
   Calendar,
+  User,
+  Settings,
+  LogOut,
+  Crown,
 } from "lucide-react"
 import { useAuth } from "@/hooks/useAuth"
 import { ProductDetailModal } from "@/components/product-detail-modal"
 import { CompetitorAnalysisModal } from "@/components/competitor-analysis-modal"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import logo from "../../public/logo.png"
+import Image from "next/image"
 
 type ProcessingStatus = "cache" | "fetching" | "complete" | "error"
 type SearchType = "normal" | "realtime"
@@ -149,29 +162,38 @@ export default function DashboardPage() {
   const getStatusDisplay = () => {
     const daysSinceUpdate = Math.floor((Date.now() - lastUpdated.getTime()) / (1000 * 60 * 60 * 24))
 
+    if (!user || user.plan !== "pro") {
+      // Free/Standard: Always show data freshness and cache message
+      return {
+        icon: <Database className="w-4 h-4 text-blue-500" />, 
+        text: `キャッシュデータを表示中（最終更新: ${daysSinceUpdate === 0 ? "本日" : `${daysSinceUpdate}日前`}）\n※データは最大1週間前のものです。リアルタイム検索はプロプランでご利用いただけます。`,
+        color: "bg-blue-50 text-blue-700 border-blue-200",
+      }
+    }
+
+    // Pro: Show cache status only after real-time search
     switch (status) {
       case "cache":
         return {
-          icon: <Database className="w-4 h-4 text-blue-500" />,
+          icon: <Database className="w-4 h-4 text-blue-500" />, 
           text: `キャッシュから表示中 (${daysSinceUpdate}日前に更新)`,
           color: "bg-blue-50 text-blue-700 border-blue-200",
         }
       case "fetching":
         return {
-          icon: <Loader2 className="w-4 h-4 text-orange-500 animate-spin" />,
-          text:
-            searchType === "realtime" ? "リアルタイム検索中... (最大30秒)" : "新しいデータを取得中... (最大10秒)",
+          icon: <Loader2 className="w-4 h-4 text-orange-500 animate-spin" />, 
+          text: searchType === "realtime" ? "リアルタイム検索中... (最大30秒)" : "新しいデータを取得中... (最大10秒)",
           color: "bg-orange-50 text-orange-700 border-orange-200",
         }
       case "complete":
         return {
-          icon: <CheckCircle className="w-4 h-4 text-green-500" />,
-          text: ` 更新完了: ${daysSinceUpdate === 0 ? "本日" : `${daysSinceUpdate}日前`}に取得したデータを表示`,
+          icon: <CheckCircle className="w-4 h-4 text-green-500" />, 
+          text: `更新完了: ${daysSinceUpdate === 0 ? "本日" : `${daysSinceUpdate}日前`}に取得したデータを表示`,
           color: "bg-green-50 text-green-700 border-green-200",
         }
       case "error":
         return {
-          icon: <AlertCircle className="w-4 h-4 text-red-500" />,
+          icon: <AlertCircle className="w-4 h-4 text-red-500" />, 
           text: "エラー: データの取得に失敗しました",
           color: "bg-red-50 text-red-700 border-red-200",
         }
@@ -231,23 +253,65 @@ export default function DashboardPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
             <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 space-y-2 sm:space-y-0">
-              <span className="text-sm text-gray-600">こんにちは、{user.name}さん</span>
+              <span className="text-sm text-gray-600">こんにちは、{user?.name || 'ユーザー'}さん</span>
               <Badge variant="outline" className="text-xs w-fit">
-                {user.plan === "free" ? "フリー" : user.plan === "standard" ? "スタンダード" : "プロ"}プラン
+                {user?.plan === "free" ? "フリー" : user?.plan === "standard" ? "スタンダード" : "プロ"}プラン
               </Badge>
             </div>
 
             <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 space-y-2 sm:space-y-0">
-              <Button
-                onClick={handleRefresh}
-                variant="outline"
-                size="sm"
-                disabled={status === "fetching"}
-                className="flex items-center justify-center space-x-2 bg-transparent w-full sm:w-auto"
-              >
-                <RefreshCw className={`w-4 h-4 ${status === "fetching" ? "animate-spin" : ""}`} />
-                <span>更新</span>
-              </Button>
+              {user?.plan === "pro" && (
+                <Button
+                  onClick={handleRefresh}
+                  variant="outline"
+                  size="sm"
+                  disabled={status === "fetching"}
+                  className="flex items-center justify-center space-x-2 bg-transparent w-full sm:w-auto"
+                >
+                  <RefreshCw className={`w-4 h-4 ${status === "fetching" ? "animate-spin" : ""}`} />
+                  <span>更新</span>
+                </Button>
+              )}
+              
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="flex items-center justify-center space-x-2 bg-transparent w-full sm:w-auto">
+                    <User className="w-4 h-4" />
+                    <span>アカウント</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <div className="flex items-center justify-start p-2">
+                    <div className="flex items-center space-x-2">
+                      <Image src={logo} alt="Logo" width={24} height={24} />
+                      <div className="flex flex-col space-y-1">
+                        <p className="text-sm font-medium leading-none">{user?.name || 'ユーザー'}</p>
+                        <p className="text-xs leading-none text-muted-foreground">{user?.email || ''}</p>
+                      </div>
+                    </div>
+                  </div>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => window.location.href = "/account/plan"}>
+                    <Crown className="mr-2 h-4 w-4" />
+                    <span>プラン更新</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => window.location.href = "/account/settings"}>
+                    <Settings className="mr-2 h-4 w-4" />
+                    <span>設定</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => {
+                    if (typeof window !== 'undefined') {
+                      localStorage.removeItem('auth-session')
+                      window.location.href = '/'
+                    }
+                  }}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>ログアウト</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              
               <div className="flex items-center justify-center space-x-2 text-sm text-gray-600">
                 <Clock className="w-4 h-4" />
                 <span>{new Date().toLocaleTimeString("ja-JP")}</span>
